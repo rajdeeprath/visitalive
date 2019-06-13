@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+	
+	<!--
+	Defines a properties file for dereferencing variables
+	-->
+	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	    <property name="location" value="/WEB-INF/red5-web.properties" />
+	</bean>
+	
+	<!--
+	Defines the web context
+	-->
+	<bean id="web.context" class="org.red5.server.Context" 
+		autowire="byType" />
+	
+	<!--
+	Defines the web scopes
+	-->
+	<bean id="web.scope" class="org.red5.server.WebScope"
+		 init-method="register">
+		<property name="server" ref="red5.server" />
+		<property name="parent" ref="global.scope" />
+		<property name="context" ref="web.context" />
+		<property name="handler" ref="web.handler" />
+		<property name="contextPath" value="${webapp.contextPath}" />
+		<property name="virtualHosts" value="${webapp.virtualHosts}" />
+	</bean>
+
+	<!--
+	Defines the web handler which acts as an applications endpoint
+	-->
+	<bean id="web.handler" class="org.red5.core.Application" singleton="true">
+		<property name="geoDatabasePath" value="/WEB-INF/GeoLiteCity.dat"/>
+		<property name="htmlDomains" value="/WEB-INF/allowedHTMLdomains.txt"/>
+		<property name="swfDomains" value="/WEB-INF/allowedSWFdomains.txt"/>
+	</bean>
+	
+	<bean id="UtiliService.service" class="org.red5.core.UtiliService" singleton="true" />
+	
+	<bean id="sharedObjectSecurity" class="org.red5.core.security.SharedObjectSecurity" init-method="init">
+		<property name="application" ref="web.handler"/>
+		<property name="connectionAllowed" value="true"/>
+		<property name="creationAllowed" value="true"/>
+		<property name="deleteAllowed" value="true"/>
+		<property name="sendAllowed" value="true"/>
+		<property name="writeAllowed" value="true"/>
+		<property name="enableSharedObjects" value="true"/>
+		<property name="sharedObjectNames" value="/WEB-INF/allowedSharedObjectNames.txt"/>
+	</bean>
+	
+	<bean id="playbackSecurity" class="org.red5.core.security.PlaybackSecurity" init-method="init">
+		<property name="application" ref="web.handler"/>
+		<property name="htmlDomains" value="/WEB-INF/allowedHTMLdomains.txt"/>
+		<property name="swfDomains" value="/WEB-INF/allowedSWFdomains.txt"/>
+	</bean>
+	
+	<bean id="publishSecurity" class="org.red5.core.security.PublishSecurity" init-method="init">
+		<property name="application" ref="web.handler"/>
+		<property name="htmlDomains" value="/WEB-INF/allowedHTMLdomains.txt"/>
+		<property name="swfDomains" value="/WEB-INF/allowedSWFdomains.txt"/>
+		<property name="publishNames" value="/WEB-INF/allowedPublishNames.txt"/>
+		<property name="enablePublish" value="false"/>
+	</bean>
+	
+	<bean id="securityLoader" class="org.red5.core.security.SecurityLoader" init-method="init">
+		<property name="application" ref="web.handler"/>
+		<property name="playbackSecurity" ref="playbackSecurity"/>
+		<property name="publishSecurity" ref="publishSecurity"/>
+		<property name="sharedObjectSecurity" ref="sharedObjectSecurity"/>
+	</bean>
+	
+	<bean id="ExternalInterface.service" class="org.red5.core.ExternalInterface" singleton="true">
+		<property name="application" ref="web.handler"/>
+	</bean>
+	
+</beans>
